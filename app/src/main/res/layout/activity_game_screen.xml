@@ -175,6 +175,16 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/lt_holes"
+        android:layout_width="fill_parent"
+        android:layout_height="50dip"
+        android:layout_below="@+id/lt_info"
+        android:orientation="horizontal"
+        >
+
+
+    </LinearLayout>
 
 
     <LinearLayout
