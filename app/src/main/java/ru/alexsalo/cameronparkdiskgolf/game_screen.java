@@ -2,6 +2,7 @@ package ru.alexsalo.cameronparkdiskgolf;
 
 import android.graphics.Color;
 import android.graphics.Point;
+import android.os.Environment;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,10 +16,19 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+
 import ru.alexsalo.camperonparkdiskgolf.R;
 
 
 public class game_screen extends ActionBarActivity {
+    public static final String RESULT_FILENAME = "disc_golf_stats.csv";
+    public static final String RESULT_DIR = "/cameron_disc_golf";
+    public static int NOGAME = -99;
     public int ScreenWidth;
     public static int N_holes = 18;
     LinearLayout lt_holes;
@@ -41,8 +51,9 @@ public class game_screen extends ActionBarActivity {
         ScreenWidth = size.x;
 
         for (int i=0; i<cur_hole_scores.length; i++){
-            cur_hole_scores[i] = 0;
+            cur_hole_scores[i] = NOGAME;
         }
+        cur_hole_scores[0] = 0;
 
         lt_holes = (LinearLayout) findViewById(R.id.lt_holes);
         tv_holes = new TextView[N_holes];
@@ -62,6 +73,7 @@ public class game_screen extends ActionBarActivity {
 
                     cur_hole = Integer.parseInt(((TextView) v).getText().toString()) - 1;
                     Log.d("debug", String.valueOf(cur_hole));
+                    cur_hole_scores[cur_hole] = 0;
                     updateScores();
                     return false;
                 }
@@ -99,6 +111,7 @@ public class game_screen extends ActionBarActivity {
                     //Reset current hole background
                     tv_holes[cur_hole].setBackgroundColor(Color.parseColor("#CC000000"));
                     cur_hole++;
+                    cur_hole_scores[cur_hole] = 0;
                     updateScores();
                 }
             }
@@ -112,6 +125,7 @@ public class game_screen extends ActionBarActivity {
                     //Reset current hole background
                     tv_holes[cur_hole].setBackgroundColor(Color.parseColor("#CC000000"));
                     cur_hole--;
+                    cur_hole_scores[cur_hole] = 0;
                     updateScores();
                 }
             }
@@ -159,11 +173,65 @@ public class game_screen extends ActionBarActivity {
         }
     }
 
+    private void resetGame(){
+        //Reset current hole background
+        tv_holes[cur_hole].setBackgroundColor(Color.parseColor("#CC000000"));
+
+        for (int i=0; i<cur_hole_scores.length; i++){
+            cur_hole_scores[i] = NOGAME;
+        }
+        cur_hole = 0;
+        cur_hole_scores[cur_hole] = 0;
+        updateScores();
+    }
+
+    public void finishGame(View view){
+        if (isExternalStorageWritable()){
+            File root = android.os.Environment.getExternalStorageDirectory();
+
+            // See http://stackoverflow.com/questions/3551821/android-write-to-sd-card-folder
+            File dir = new File (root.getAbsolutePath() + RESULT_DIR);
+            dir.mkdirs();
+            File file = new File(dir, RESULT_FILENAME);
+
+            try {
+                FileOutputStream f = new FileOutputStream(file, true);
+                PrintWriter pw = new PrintWriter(f);
+                for (int i =0; i < cur_hole_scores.length; i++){
+                    pw.print(cur_hole_scores[i]);
+                    pw.print(",");
+                }
+                pw.println();
+                pw.flush();
+                pw.close();
+                f.close();
+                Toast.makeText(game_screen.this, "Your result has been saved.", Toast.LENGTH_SHORT).show();
+                resetGame();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                Log.i("i", "******* File not found. Did you add a WRITE_EXTERNAL_STORAGE permission to the   manifest?");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }else{
+            Toast.makeText(game_screen.this, "Can't save results - no external drive", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void updateScores(){
         tv_cur_hole_score.setText(String.valueOf(cur_hole_scores[cur_hole]));
         tv_score.setText(String.valueOf(cur_score));
 
         //Change bk color of selected hole
         tv_holes[cur_hole].setBackgroundColor(Color.parseColor("#CC33b5e5"));
+    }
+
+    /* Checks if external storage is available for read and write */
+    public boolean isExternalStorageWritable(){
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state)) {
+            return true;
+        }
+        return false;
     }
 }
