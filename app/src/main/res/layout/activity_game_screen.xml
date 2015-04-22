@@ -1,0 +1,208 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".game_screen">
+
+    <ImageView
+        android:id="@+id/iv_cur_hole_image"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:src="@drawable/hole1"
+        android:scaleType="fitXY"/>
+
+    <LinearLayout
+        android:id="@+id/lt_info"
+        android:layout_width="fill_parent"
+        android:layout_height="150dip"
+        android:layout_alignParentTop="true"
+        android:weightSum="2">
+
+        <LinearLayout
+            android:layout_width="0dip"
+            android:layout_weight="1"
+            android:layout_height="fill_parent"
+            android:background="#CC000000"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_current_hole_score"
+                android:layout_width="fill_parent"
+                android:layout_height="80dip"
+                android:text="+0"
+                android:textSize="60dip"
+                android:textColor="@android:color/white"
+                android:gravity="center"/>
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="20dip"
+                android:paddingLeft="15dip">
+
+                <TextView
+                    android:layout_width="80dip"
+                    android:layout_height="fill_parent"
+                    android:textColor="@android:color/white"
+                    android:text="Best: "/>
+
+                <TextView
+                    android:id="@+id/tv_cur_hole_best"
+                    android:layout_width="wrap_content"
+                    android:layout_height="fill_parent"
+                    android:textColor="@android:color/white"
+                    android:text="-1"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="20dip"
+                android:paddingLeft="15dip">
+
+                <TextView
+                    android:layout_width="80dip"
+                    android:layout_height="fill_parent"
+                    android:textColor="@android:color/white"
+                    android:text="Average: "/>
+
+                <TextView
+                    android:id="@+id/tv_cur_hole_average"
+                    android:layout_width="wrap_content"
+                    android:layout_height="fill_parent"
+                    android:textColor="@android:color/white"
+                    android:text="-1"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="20dip"
+                android:paddingLeft="15dip">
+
+                <TextView
+                    android:layout_width="80dip"
+                    android:layout_height="fill_parent"
+                    android:textColor="@android:color/white"
+                    android:text="Recent Avg: "/>
+
+                <TextView
+                    android:id="@+id/tv_cur_hole_recent_average"
+                    android:layout_width="wrap_content"
+                    android:layout_height="fill_parent"
+                    android:textColor="@android:color/white"
+                    android:text="-1"/>
+            </LinearLayout>
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="0dip"
+            android:layout_weight="1"
+            android:layout_height="fill_parent"
+            android:background="#CC000000"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_current_score"
+                android:layout_width="fill_parent"
+                android:layout_height="80dip"
+                android:text="+0"
+                android:textSize="60dip"
+                android:textColor="@android:color/white"
+                android:gravity="center"/>
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="20dip"
+                android:paddingLeft="15dip">
+
+                <TextView
+                    android:layout_width="80dip"
+                    android:layout_height="fill_parent"
+                    android:textColor="@android:color/white"
+                    android:text="Best: "/>
+
+                <TextView
+                    android:id="@+id/tv_course_best"
+                    android:layout_width="wrap_content"
+                    android:layout_height="fill_parent"
+                    android:textColor="@android:color/white"
+                    android:text="-1"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="20dip"
+                android:paddingLeft="15dip">
+
+                <TextView
+                    android:layout_width="80dip"
+                    android:layout_height="fill_parent"
+                    android:textColor="@android:color/white"
+                    android:text="Average: "/>
+
+                <TextView
+                    android:id="@+id/tv_cur_course_average"
+                    android:layout_width="wrap_content"
+                    android:layout_height="fill_parent"
+                    android:textColor="@android:color/white"
+                    android:text="-1"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="20dip"
+                android:paddingLeft="15dip">
+
+                <TextView
+                    android:layout_width="80dip"
+                    android:layout_height="fill_parent"
+                    android:textColor="@android:color/white"
+                    android:text="Recent Avg: "/>
+
+                <TextView
+                    android:id="@+id/tv_cur_hole_course_average"
+                    android:layout_width="wrap_content"
+                    android:layout_height="fill_parent"
+                    android:textColor="@android:color/white"
+                    android:text="-1"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="0dip"
+            android:layout_weight="1"
+            android:layout_height="fill_parent"
+            android:background="#CC000000"
+            />
+
+    </LinearLayout>
+
+
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="100dip"
+        android:layout_alignParentBottom="true"
+        android:weightSum="2">
+
+        <Button
+            android:id="@+id/btn_dec"
+            android:layout_width="0dip"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:background="#CC000000"
+            android:textColor="@android:color/white"
+            android:text="-"
+            android:textSize="60dp"
+            android:onClick="decrease_hole_score"/>
+        <Button
+            android:id="@+id/btn_inc"
+            android:layout_width="0dip"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:background="#CC000000"
+            android:textColor="@android:color/white"
+            android:text="+"
+            android:textSize="50dp"
+            android:onClick="increase_hole_score"/>
+    </LinearLayout>
+
+</RelativeLayout>
