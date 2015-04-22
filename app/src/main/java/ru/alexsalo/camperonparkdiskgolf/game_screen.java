@@ -8,14 +8,18 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 public class game_screen extends ActionBarActivity {
-    private static final String DEBUG_TAG = "debug";
+    public static int N_holes = 18;
+    ImageView bg_image;
     TextView tv_cur_hole_score;
     TextView tv_score;
-    int cur_hole_score = 0;
+    int cur_hole = 0;
+    int[] cur_hole_scores = new int[N_holes];
     int cur_score = 0;
 
     @Override
@@ -23,33 +27,37 @@ public class game_screen extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game_screen);
 
+        for (int i=0; i<cur_hole_scores.length; i++){
+            cur_hole_scores[i] = 0;
+        }
+
+        bg_image = (ImageView) findViewById(R.id.iv_cur_hole_image);
         tv_cur_hole_score = (TextView) findViewById(R.id.tv_current_hole_score);
         tv_score = (TextView) findViewById(R.id.tv_current_score);
+
+        bg_image.setOnTouchListener(new OnSwipeTouchListener(getApplicationContext()) {
+            @Override
+            public void onSwipeLeft() {
+                Toast.makeText(game_screen.this, "left", Toast.LENGTH_SHORT).show();
+                if (cur_hole < N_holes - 1){
+                    cur_hole++;
+                    updateScores();
+                }
+            }
+
+            @Override
+            public void onSwipeRight() {
+                Toast.makeText(game_screen.this, "Right", Toast.LENGTH_SHORT).show();
+                if (cur_hole > 0){
+                    cur_hole--;
+                    updateScores();
+                }
+            }
+        });
     }
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event){
 
-        int action = MotionEventCompat.getActionMasked(event);
 
-        switch(action) {
-            case (MotionEvent.ACTION_DOWN) :
-                Log.d(DEBUG_TAG, "Action was DOWN");
-                return true;
-            case (MotionEvent.ACTION_UP) :
-                Log.d(DEBUG_TAG,"Action was UP");
-                return true;
-            case (MotionEvent.ACTION_CANCEL) :
-                Log.d(DEBUG_TAG,"Action was CANCEL");
-                return true;
-            case (MotionEvent.ACTION_OUTSIDE) :
-                Log.d(DEBUG_TAG,"Movement occurred outside bounds " +
-                        "of current screen element");
-                return true;
-            default :
-                return super.onTouchEvent(event);
-        }
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -74,23 +82,23 @@ public class game_screen extends ActionBarActivity {
     }
 
     public void decrease_hole_score(View view){
-        if (cur_hole_score >= -1) {
-            cur_hole_score--;
+        if (cur_hole_scores[cur_hole] >= -1) {
+            cur_hole_scores[cur_hole]--;
             cur_score--;
             updateScores();
         }
     }
 
     public void increase_hole_score(View view){
-        if (cur_hole_score < 10) {
-            cur_hole_score++;
+        if (cur_hole_scores[cur_hole] < 10) {
+            cur_hole_scores[cur_hole]++;
             cur_score++;
             updateScores();
         }
     }
 
     private void updateScores(){
-        tv_cur_hole_score.setText(String.valueOf(cur_hole_score));
+        tv_cur_hole_score.setText(String.valueOf(cur_hole_scores[cur_hole]));
         tv_score.setText(String.valueOf(cur_score));
     }
 }
