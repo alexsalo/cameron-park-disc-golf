@@ -178,16 +178,24 @@
     <LinearLayout
         android:id="@+id/lt_holes"
         android:layout_width="fill_parent"
-        android:layout_height="50dip"
+        android:layout_height="wrap_content"
         android:layout_below="@+id/lt_info"
         android:orientation="horizontal"
     >
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/lt_holes_scores"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/lt_holes"
+        android:orientation="horizontal"
+        >
     </LinearLayout>
 
     <Button
         android:layout_width="60dip"
         android:layout_height="50dip"
-        android:layout_below="@+id/lt_holes"
+        android:layout_below="@+id/lt_holes_scores"
         android:layout_alignParentRight="true"
         android:text="Finish Game"
         android:textColor="@android:color/white"

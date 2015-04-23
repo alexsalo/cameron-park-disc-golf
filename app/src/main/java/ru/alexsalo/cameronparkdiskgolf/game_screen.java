@@ -30,9 +30,11 @@ public class game_screen extends ActionBarActivity {
     public static final String RESULT_DIR = "/cameron_disc_golf";
     public static int NOGAME = -99;
     public int ScreenWidth;
-    public static int N_holes = 18;
+    public static int N_holes = 14;
     LinearLayout lt_holes;
+    LinearLayout lt_holes_scores;
     TextView[] tv_holes;
+    TextView[] tv_holes_scores;
     ImageView bg_image;
     TextView tv_cur_hole_score;
     TextView tv_score;
@@ -56,8 +58,17 @@ public class game_screen extends ActionBarActivity {
         cur_hole_scores[0] = 0;
 
         lt_holes = (LinearLayout) findViewById(R.id.lt_holes);
+        lt_holes_scores = (LinearLayout) findViewById(R.id.lt_holes_scores);
         tv_holes = new TextView[N_holes];
+        tv_holes_scores = new TextView[N_holes];
         for (int i = 0; i < tv_holes.length; i++){
+            tv_holes_scores[i] = new TextView(this);
+            tv_holes_scores[i].setBackgroundColor(Color.parseColor("#CC000000"));
+            tv_holes_scores[i].setGravity(17);
+            tv_holes_scores[i].setWidth(ScreenWidth / N_holes);
+            tv_holes_scores[i].setTextColor(Color.WHITE);
+            tv_holes_scores[i].setVisibility(View.INVISIBLE);
+
             tv_holes[i] = new TextView(this);
             tv_holes[i].setPadding(5,5,0,5);
             tv_holes[i].setBackgroundColor(Color.parseColor("#CC000000"));
@@ -70,15 +81,19 @@ public class game_screen extends ActionBarActivity {
                 public boolean onTouch(View v, MotionEvent event) {
                     //Reset current hole background
                     tv_holes[cur_hole].setBackgroundColor(Color.parseColor("#CC000000"));
+                    updateCurrentHoleScores();
 
                     cur_hole = Integer.parseInt(((TextView) v).getText().toString()) - 1;
-                    Log.d("debug", String.valueOf(cur_hole));
-                    cur_hole_scores[cur_hole] = 0;
+
+                    if (cur_hole_scores[cur_hole] == NOGAME) {
+                        cur_hole_scores[cur_hole] = 0;
+                    }
                     updateScores();
                     return false;
                 }
             });
             lt_holes.addView(tv_holes[i]);
+            lt_holes_scores.addView(tv_holes_scores[i]);
         }
 
 
@@ -105,13 +120,14 @@ public class game_screen extends ActionBarActivity {
                     if (msg != "")
                         Toast.makeText(game_screen.this, msg, Toast.LENGTH_SHORT).show();
 
-                    //Update total score
-                    cur_score += cur_hole_scores[cur_hole];
+                    updateCurrentHoleScores();
 
                     //Reset current hole background
                     tv_holes[cur_hole].setBackgroundColor(Color.parseColor("#CC000000"));
                     cur_hole++;
-                    cur_hole_scores[cur_hole] = 0;
+                    if (cur_hole_scores[cur_hole] == NOGAME) {
+                        cur_hole_scores[cur_hole] = 0;
+                    }
                     updateScores();
                 }
             }
@@ -119,13 +135,14 @@ public class game_screen extends ActionBarActivity {
             @Override
             public void onSwipeRight() {
                 if (cur_hole > 0){
-                    //Update total score
-                    cur_score += cur_hole_scores[cur_hole];
+                    updateCurrentHoleScores();
 
                     //Reset current hole background
                     tv_holes[cur_hole].setBackgroundColor(Color.parseColor("#CC000000"));
                     cur_hole--;
-                    cur_hole_scores[cur_hole] = 0;
+                    if (cur_hole_scores[cur_hole] == NOGAME) {
+                        cur_hole_scores[cur_hole] = 0;
+                    }
                     updateScores();
                 }
             }
@@ -134,7 +151,13 @@ public class game_screen extends ActionBarActivity {
         updateScores();
     }
 
+    void updateCurrentHoleScores(){
+        //update cur_hole_score text
+        tv_holes_scores[cur_hole].setText(String.valueOf(cur_hole_scores[cur_hole]));
+        tv_holes_scores[cur_hole].setVisibility(View.VISIBLE);
 
+        tv_score.setText(String.valueOf(cur_score));
+    }
 
 
     @Override
@@ -220,7 +243,7 @@ public class game_screen extends ActionBarActivity {
 
     private void updateScores(){
         tv_cur_hole_score.setText(String.valueOf(cur_hole_scores[cur_hole]));
-        tv_score.setText(String.valueOf(cur_score));
+        cur_score = getCurScore();
 
         //Change bk color of selected hole
         tv_holes[cur_hole].setBackgroundColor(Color.parseColor("#CC33b5e5"));
@@ -233,5 +256,15 @@ public class game_screen extends ActionBarActivity {
             return true;
         }
         return false;
+    }
+
+    int getCurScore(){
+        int res = 0;
+        for (int i = 0; i < cur_hole_scores.length; i++){
+            if (cur_hole_scores[i] != NOGAME){
+                res += cur_hole_scores[i];
+            }
+        }
+        return res;
     }
 }
