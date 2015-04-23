@@ -21,6 +21,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Scanner;
 
 import ru.alexsalo.camperonparkdiskgolf.R;
 
@@ -42,6 +45,17 @@ public class game_screen extends ActionBarActivity {
     int[] cur_hole_scores = new int[N_holes];
     int cur_score = 0;
 
+    TextView tv_cur_hole_best;
+    TextView tv_cur_hole_average;
+    TextView tv_cur_hole_recent_average;
+
+    TextView tv_cur_hole_course_best;
+    TextView tv_cur_hole_course_average;
+    TextView tv_cur_hole_course_recent_average;
+
+    ArrayList<ArrayList<Integer>> history_scores;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,6 +70,14 @@ public class game_screen extends ActionBarActivity {
             cur_hole_scores[i] = NOGAME;
         }
         cur_hole_scores[0] = 0;
+
+        tv_cur_hole_best = (TextView) findViewById(R.id.tv_cur_hole_best);
+        tv_cur_hole_average = (TextView) findViewById(R.id.tv_cur_hole_average);
+        tv_cur_hole_recent_average = (TextView) findViewById(R.id.tv_cur_hole_recent_average);
+
+        tv_cur_hole_course_best = (TextView) findViewById(R.id.tv_cur_hole_course_best);
+        tv_cur_hole_course_average = (TextView) findViewById(R.id.tv_cur_hole_course_average);
+        tv_cur_hole_course_recent_average = (TextView) findViewById(R.id.tv_cur_hole_recent_average);
 
         lt_holes = (LinearLayout) findViewById(R.id.lt_holes);
         lt_holes_scores = (LinearLayout) findViewById(R.id.lt_holes_scores);
@@ -148,6 +170,7 @@ public class game_screen extends ActionBarActivity {
             }
         });
 
+        readHistoryScores();
         updateScores();
     }
 
@@ -208,6 +231,39 @@ public class game_screen extends ActionBarActivity {
         updateScores();
     }
 
+    private void readHistoryScores(){
+        if (isExternalStorageWritable()){
+            File root = android.os.Environment.getExternalStorageDirectory();
+
+            // See http://stackoverflow.com/questions/3551821/android-write-to-sd-card-folder
+            File dir = new File (root.getAbsolutePath() + RESULT_DIR);
+            dir.mkdirs();
+            File file = new File(dir, RESULT_FILENAME);
+
+            try {
+                history_scores = new ArrayList<ArrayList<Integer>>();
+                Scanner sc = new Scanner(file);
+
+                while (sc.hasNext()){
+                    String[] values = sc.nextLine().split(",");
+                    Integer[] int_values = new Integer[values.length];
+                    for (int i = 0; i < values.length; i++){
+                        int_values[i] = Integer.parseInt(values[i]);
+                    }
+                    history_scores.add(new ArrayList<Integer>(Arrays.asList(int_values)));
+                }
+
+                System.out.println(history_scores);
+
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                Log.i("i", "******* File not found. Did you add a WRITE_EXTERNAL_STORAGE permission to the   manifest?");
+            }
+        }else{
+            Toast.makeText(game_screen.this, "Can't open results - no external drive", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     public void finishGame(View view){
         if (isExternalStorageWritable()){
             File root = android.os.Environment.getExternalStorageDirectory();
@@ -245,9 +301,53 @@ public class game_screen extends ActionBarActivity {
         tv_cur_hole_score.setText(String.valueOf(cur_hole_scores[cur_hole]));
         cur_score = getCurScore();
 
+        if (history_scores != null) {
+            tv_cur_hole_best.setText(String.valueOf(getBestScore(history_scores, cur_hole)));
+            tv_cur_hole_average.setText(String.valueOf(getAvgScore(history_scores, cur_hole)));
+            tv_cur_hole_recent_average.setText(String.valueOf(getRecentAvgScore(history_scores, cur_hole)));
+        }
+
         //Change bk color of selected hole
         tv_holes[cur_hole].setBackgroundColor(Color.parseColor("#CC33b5e5"));
     }
+
+    int getBestScore(ArrayList<ArrayList<Integer>> x, int hole){
+        int best = 99;
+        for (ArrayList<Integer> list : x){
+            if (list.get(hole) != NOGAME && list.get(hole) < best){
+                best = list.get(hole);
+            }
+        }
+        return best;
+    }
+
+    double getAvgScore(ArrayList<ArrayList<Integer>> x, int hole){
+        int avg = 0;
+        int size = 0;
+        for (ArrayList<Integer> list : x){
+            if (list.get(hole) != NOGAME) {
+                avg += list.get(hole);
+                size++;
+            }
+        }
+        return avg * 1.0 / size;
+    }
+
+    double getRecentAvgScore(ArrayList<ArrayList<Integer>> x, int hole){
+        int avg = 0;
+        int size = 0;
+        for (int i = 0; i < x.size(); i++){
+            if (x.get(i).get(hole) != NOGAME) {
+                avg += x.get(i).get(hole);
+                size++;
+            }
+            if (size >= 2){
+                break;
+            }
+        }
+        return avg * 1.0 / size;
+    }
+
 
     /* Checks if external storage is available for read and write */
     public boolean isExternalStorageWritable(){
