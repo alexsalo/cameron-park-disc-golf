@@ -16,6 +16,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.series.BarGraphSeries;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -55,6 +60,7 @@ public class game_screen extends ActionBarActivity {
 
     ArrayList<ArrayList<Integer>> history_scores;
 
+    GraphView graph;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +76,19 @@ public class game_screen extends ActionBarActivity {
             cur_hole_scores[i] = NOGAME;
         }
         cur_hole_scores[0] = 0;
+
+        graph = (GraphView) findViewById(R.id.graph);
+        graph.getGridLabelRenderer().setVerticalLabelsColor(Color.WHITE);
+        graph.getGridLabelRenderer().setHorizontalLabelsColor(Color.WHITE);
+        graph.setVisibility(View.INVISIBLE);
+        BarGraphSeries<DataPoint> series = new BarGraphSeries<DataPoint>(new DataPoint[] {
+                new DataPoint(0, 1),
+                new DataPoint(1, 5),
+                new DataPoint(2, 3),
+                new DataPoint(3, 2),
+                new DataPoint(4, 6)
+        });
+        graph.addSeries(series);
 
         tv_cur_hole_best = (TextView) findViewById(R.id.tv_cur_hole_best);
         tv_cur_hole_average = (TextView) findViewById(R.id.tv_cur_hole_average);
@@ -90,6 +109,16 @@ public class game_screen extends ActionBarActivity {
             tv_holes_scores[i].setWidth(ScreenWidth / N_holes);
             tv_holes_scores[i].setTextColor(Color.WHITE);
             tv_holes_scores[i].setVisibility(View.INVISIBLE);
+            tv_holes_scores[i].setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    if (graph.getVisibility() == View.INVISIBLE)
+                        graph.setVisibility(View.VISIBLE);
+                    else
+                        graph.setVisibility(View.INVISIBLE);
+                    return false;
+                }
+            });
 
             tv_holes[i] = new TextView(this);
             tv_holes[i].setPadding(5,5,0,5);

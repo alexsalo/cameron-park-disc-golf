@@ -192,7 +192,16 @@
         >
     </LinearLayout>
 
+    <com.jjoe64.graphview.GraphView
+        android:layout_width="match_parent"
+        android:layout_height="150dip"
+        android:id="@+id/graph"
+        android:layout_below="@+id/btn_finish_game"
+        android:background="#CC000000"
+        android:textColor="@android:color/white"/>
+
     <Button
+        android:id="@+id/btn_finish_game"
         android:layout_width="60dip"
         android:layout_height="50dip"
         android:layout_below="@+id/lt_holes_scores"
