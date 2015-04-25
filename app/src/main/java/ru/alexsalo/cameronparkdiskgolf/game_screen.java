@@ -108,13 +108,14 @@ public class game_screen extends ActionBarActivity {
                 public boolean onTouch(View v, MotionEvent event) {
                     if (graph.getVisibility() == View.INVISIBLE) {
                         graph.setVisibility(View.VISIBLE);
-                        BarGraphSeries<DataPoint> series = new BarGraphSeries<DataPoint>(new DataPoint[]{
-                                new DataPoint(0, 1),
-                                new DataPoint(1, 5),
-                                new DataPoint(2, 3),
-                                new DataPoint(3, 2),
-                                new DataPoint(4, 6)
-                        });
+                        Map<Integer, Integer> stat = getStatsDistr(1);
+                        DataPoint[] points = new DataPoint[stat.size()];
+                        int i = 0;
+                        for (int key : stat.keySet()){
+                            points[i] = new DataPoint(key, stat.get(key));
+                            i++;
+                        }
+                        BarGraphSeries<DataPoint> series = new BarGraphSeries<DataPoint>(points);
                         graph.addSeries(series);
                     }else
                         graph.setVisibility(View.INVISIBLE);
