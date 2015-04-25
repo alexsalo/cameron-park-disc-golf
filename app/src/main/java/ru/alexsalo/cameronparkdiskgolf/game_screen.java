@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 import ru.alexsalo.camperonparkdiskgolf.R;
@@ -81,14 +83,6 @@ public class game_screen extends ActionBarActivity {
         graph.getGridLabelRenderer().setVerticalLabelsColor(Color.WHITE);
         graph.getGridLabelRenderer().setHorizontalLabelsColor(Color.WHITE);
         graph.setVisibility(View.INVISIBLE);
-        BarGraphSeries<DataPoint> series = new BarGraphSeries<DataPoint>(new DataPoint[] {
-                new DataPoint(0, 1),
-                new DataPoint(1, 5),
-                new DataPoint(2, 3),
-                new DataPoint(3, 2),
-                new DataPoint(4, 6)
-        });
-        graph.addSeries(series);
 
         tv_cur_hole_best = (TextView) findViewById(R.id.tv_cur_hole_best);
         tv_cur_hole_average = (TextView) findViewById(R.id.tv_cur_hole_average);
@@ -112,9 +106,17 @@ public class game_screen extends ActionBarActivity {
             tv_holes_scores[i].setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
-                    if (graph.getVisibility() == View.INVISIBLE)
+                    if (graph.getVisibility() == View.INVISIBLE) {
                         graph.setVisibility(View.VISIBLE);
-                    else
+                        BarGraphSeries<DataPoint> series = new BarGraphSeries<DataPoint>(new DataPoint[]{
+                                new DataPoint(0, 1),
+                                new DataPoint(1, 5),
+                                new DataPoint(2, 3),
+                                new DataPoint(3, 2),
+                                new DataPoint(4, 6)
+                        });
+                        graph.addSeries(series);
+                    }else
                         graph.setVisibility(View.INVISIBLE);
                     return false;
                 }
@@ -290,6 +292,20 @@ public class game_screen extends ActionBarActivity {
             }
         }else{
             Toast.makeText(game_screen.this, "Can't open results - no external drive", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    Map<Integer, Integer> getStatsDistr(int hole){
+        if (history_scores != null) {
+            Map<Integer, Integer> distribution = new HashMap<Integer, Integer>();
+            for (ArrayList<Integer> list : history_scores){
+                int result = list.get(hole);
+                int count = distribution.containsKey(result) ? distribution.get(result) : 0;
+                distribution.put(result, count + 1);
+            }
+            return distribution;
+        }else{
+            return null;
         }
     }
 
