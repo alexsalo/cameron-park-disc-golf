@@ -16,21 +16,19 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.series.BarGraphSeries;
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.TreeSet;
 
 import ru.alexsalo.camperonparkdiskgolf.R;
 
@@ -62,7 +60,7 @@ public class game_screen extends ActionBarActivity {
 
     ArrayList<ArrayList<Integer>> history_scores;
 
-    GraphView graph;
+    TextView graph;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,9 +77,7 @@ public class game_screen extends ActionBarActivity {
         }
         cur_hole_scores[0] = 0;
 
-        graph = (GraphView) findViewById(R.id.graph);
-        graph.getGridLabelRenderer().setVerticalLabelsColor(Color.WHITE);
-        graph.getGridLabelRenderer().setHorizontalLabelsColor(Color.WHITE);
+        graph = (TextView) findViewById(R.id.graph);
         graph.setVisibility(View.INVISIBLE);
 
         tv_cur_hole_best = (TextView) findViewById(R.id.tv_cur_hole_best);
@@ -109,14 +105,13 @@ public class game_screen extends ActionBarActivity {
                     if (graph.getVisibility() == View.INVISIBLE) {
                         graph.setVisibility(View.VISIBLE);
                         Map<Integer, Integer> stat = getStatsDistr(1);
-                        DataPoint[] points = new DataPoint[stat.size()];
-                        int i = 0;
-                        for (int key : stat.keySet()){
-                            points[i] = new DataPoint(key, stat.get(key));
-                            i++;
+                        String graphText = "";
+                        ArrayList<Integer> keys = new ArrayList<Integer>(stat.keySet());
+                        Collections.sort(keys);
+                        for (int key : keys){
+                            graphText += String.valueOf(key) + ": " + String.valueOf(stat.get(key)) + "\n";
                         }
-                        BarGraphSeries<DataPoint> series = new BarGraphSeries<DataPoint>(points);
-                        graph.addSeries(series);
+                        graph.setText(graphText);
                     }else
                         graph.setVisibility(View.INVISIBLE);
                     return false;
@@ -322,11 +317,14 @@ public class game_screen extends ActionBarActivity {
             try {
                 FileOutputStream f = new FileOutputStream(file, true);
                 PrintWriter pw = new PrintWriter(f);
+                pw.println();
                 for (int i =0; i < cur_hole_scores.length; i++){
                     pw.print(cur_hole_scores[i]);
-                    pw.print(",");
+                    if (i != cur_hole_scores.length - 1){
+                        pw.print(",");
+                    }
+
                 }
-                pw.println();
                 pw.flush();
                 pw.close();
                 f.close();
@@ -349,8 +347,8 @@ public class game_screen extends ActionBarActivity {
 
         if (history_scores != null) {
             tv_cur_hole_best.setText(String.valueOf(getBestScore(history_scores, cur_hole)));
-            tv_cur_hole_average.setText(String.valueOf(getAvgScore(history_scores, cur_hole)));
-            tv_cur_hole_recent_average.setText(String.valueOf(getRecentAvgScore(history_scores, cur_hole)));
+            tv_cur_hole_average.setText(String.format("%.2f", getAvgScore(history_scores, cur_hole)));
+            tv_cur_hole_recent_average.setText(String.format("%.2f", getRecentAvgScore(history_scores, cur_hole)));
         }
 
         //Change bk color of selected hole

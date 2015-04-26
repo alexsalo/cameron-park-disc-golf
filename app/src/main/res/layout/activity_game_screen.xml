@@ -192,9 +192,9 @@
         >
     </LinearLayout>
 
-    <com.jjoe64.graphview.GraphView
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="150dip"
+        android:layout_height="wrap_content"
         android:id="@+id/graph"
         android:layout_below="@+id/btn_finish_game"
         android:background="#CC000000"
