@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/CamperonPark_DiskGolf.iml" filepath="$PROJECT_DIR$/CamperonPark_DiskGolf.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/cameron-park-disc-golf.iml" filepath="$PROJECT_DIR$/cameron-park-disc-golf.iml" />
     </modules>
   </component>
 </project>
