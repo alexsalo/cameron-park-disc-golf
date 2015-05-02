@@ -1,4 +1,4 @@
-package com.alexsalo.cameronparkdiscgolf;
+package com.alexsalo.cameronparkdiscgolf_free;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -30,7 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
-import com.alexsalo.cameronparkdiskgolf.R;
+import com.alexsalo.cameronparkdiscgolf_free.R;
 
 public class game_screen extends ActionBarActivity {
     public static final String RESULT_FILENAME = "disc_golf_stats.csv";
@@ -261,6 +261,7 @@ public class game_screen extends ActionBarActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            resetGame();
             return true;
         }
 
@@ -291,6 +292,7 @@ public class game_screen extends ActionBarActivity {
         }
         cur_hole = 0;
         cur_hole_scores[cur_hole] = 0;
+        readHistoryScores();
         updateScores();
     }
 
@@ -320,7 +322,6 @@ public class game_screen extends ActionBarActivity {
 
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
-                Log.i("i", "******* File not found. Did you add a WRITE_EXTERNAL_STORAGE permission to the   manifest?");
             }
         }else{
             Toast.makeText(game_screen.this, "Can't open results - no external drive", Toast.LENGTH_SHORT).show();
@@ -341,6 +342,7 @@ public class game_screen extends ActionBarActivity {
         }
     }
 
+
     public void finishGame(View view){
         if (isExternalStorageWritable()){
             File root = android.os.Environment.getExternalStorageDirectory();
@@ -350,28 +352,43 @@ public class game_screen extends ActionBarActivity {
             dir.mkdirs();
             File file = new File(dir, RESULT_FILENAME);
 
-            try {
-                FileOutputStream f = new FileOutputStream(file, true);
-                PrintWriter pw = new PrintWriter(f);
-                pw.println();
-                for (int i =0; i < cur_hole_scores.length; i++){
-                    pw.print(cur_hole_scores[i]);
-                    if (i != cur_hole_scores.length - 1){
-                        pw.print(",");
-                    }
+            if (history_scores.size() < 7) {
+                try {
+                    FileOutputStream f = new FileOutputStream(file, true);
+                    PrintWriter pw = new PrintWriter(f);
+                    pw.println();
+                    for (int i = 0; i < cur_hole_scores.length; i++) {
+                        pw.print(cur_hole_scores[i]);
+                        if (i != cur_hole_scores.length - 1) {
+                            pw.print(",");
+                        }
 
+                    }
+                    pw.flush();
+                    pw.close();
+                    f.close();
+                    Toast.makeText(game_screen.this, "Your result has been saved.", Toast.LENGTH_SHORT).show();
+                    resetGame();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                    Log.i("i", "******* File not found. Did you add a WRITE_EXTERNAL_STORAGE permission to the   manifest?");
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                pw.flush();
-                pw.close();
-                f.close();
-                Toast.makeText(game_screen.this, "Your result has been saved.", Toast.LENGTH_SHORT).show();
-                resetGame();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                Log.i("i", "******* File not found. Did you add a WRITE_EXTERNAL_STORAGE permission to the   manifest?");
-            } catch (IOException e) {
-                e.printStackTrace();
+            }else{
+                AlertDialog alertDialog = new AlertDialog.Builder(game_screen.this).create();
+                alertDialog.setTitle("Get a full version");
+                alertDialog.setMessage("You are using a free version which can't save more than 5 games. Please " +
+                        "get the full version for the unlimited history storage");
+                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+                alertDialog.show();
             }
+
         }else{
             Toast.makeText(game_screen.this, "Can't save results - no external drive", Toast.LENGTH_SHORT).show();
         }
@@ -385,6 +402,10 @@ public class game_screen extends ActionBarActivity {
             tv_cur_hole_best.setText(String.valueOf(getBestScore(history_scores, cur_hole)));
             tv_cur_hole_average.setText(String.format("%.2f", getAvgScore(history_scores, cur_hole)));
             tv_cur_hole_recent_average.setText(String.format("%.2f", getRecentAvgScore(history_scores, cur_hole)));
+
+            tv_cur_hole_course_best.setText(String.valueOf(getBest(cur_hole)));
+            tv_cur_hole_course_average.setText(String.format("%.2f", getAvg(cur_hole)));
+            tv_cur_hole_course_recent_average.setText(String.format("%.2f", getRecentAvg(cur_hole)));
         }
 
         //Change bk color of selected hole
@@ -394,6 +415,53 @@ public class game_screen extends ActionBarActivity {
         bg_image.setImageDrawable(getDrawable(img_holes[cur_hole]));
     }
 
+    ArrayList<Integer> getScoreArray(ArrayList<ArrayList<Integer>> x, int hole){
+        ArrayList<Integer> scores = new ArrayList<Integer>();
+        for (ArrayList<Integer> list : x){
+            int sum = 0;
+            boolean doCount = true;
+            for (int i = 0; i < hole; i++) {
+                if (list.get(hole) == NOGAME)
+                    doCount = false;
+
+                sum += list.get(i);
+            }
+            if (doCount)
+                scores.add(sum);
+        }
+        return scores;
+    }
+
+    int getBest(int hole){
+        int best = 99;
+        for (int sum : getScoreArray(history_scores, hole)){
+            if (sum < best)
+                best = sum;
+        }
+        return best == 99 ? 0 : best;
+    }
+
+    double getAvg(int hole){
+        int totalSum = 0;
+        ArrayList<Integer> scores = getScoreArray(history_scores, hole);
+        for (int sum : scores){
+            totalSum += sum;
+        }
+        return totalSum * 1.0 / scores.size();
+    }
+
+    double getRecentAvg(int hole){
+        int totalSum = 0;
+        ArrayList<Integer> scores = getScoreArray(history_scores, hole);
+        for (int i = 0; i < scores.size(); i++){
+            totalSum += scores.get(scores.size() - 1 - i);
+            if (i >= 2){
+                break;
+            }
+        }
+        return totalSum * 1.0 / scores.size();
+    }
+
     int getBestScore(ArrayList<ArrayList<Integer>> x, int hole){
         int best = 99;
         for (ArrayList<Integer> list : x){
@@ -401,7 +469,7 @@ public class game_screen extends ActionBarActivity {
                 best = list.get(hole);
             }
         }
-        return best;
+        return best == 99 ? 0 : best;
     }
 
     double getAvgScore(ArrayList<ArrayList<Integer>> x, int hole){

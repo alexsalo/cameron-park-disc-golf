@@ -12,7 +12,7 @@ android {
     compileSdkVersion 21
     buildToolsVersion "21.1.2"
     defaultConfig {
-        applicationId "com.alexsalo.cameronparkdiskgolf"
+        applicationId "com.alexsalo.cameronparkdiscgolf_free"
         minSdkVersion 21
         targetSdkVersion 21
         versionCode 2

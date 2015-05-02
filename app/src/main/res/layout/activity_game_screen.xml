@@ -29,8 +29,7 @@
                 android:layout_height="fill_parent"
                 android:orientation="vertical"
                 android:gravity="center"
-                android:paddingLeft="15dip"
-                android:paddingRight="25dip">
+                android:paddingLeft="10dip">
 
                 <LinearLayout
                     android:layout_width="fill_parent"
@@ -84,12 +83,13 @@
 
             <TextView
                 android:id="@+id/tv_current_hole_score"
-                android:layout_width="wrap_content"
+                android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:text="0"
                 android:textSize="60dip"
                 android:textColor="@android:color/white"
-                android:gravity="center"/>
+                android:gravity="center"
+                />
 
         </LinearLayout>
 
@@ -103,8 +103,7 @@
                 android:layout_height="fill_parent"
                 android:orientation="vertical"
                 android:gravity="center"
-                android:paddingLeft="15dip"
-                android:paddingRight="25dip">
+                android:paddingLeft="15dip">
 
                 <LinearLayout
                     android:layout_width="fill_parent"
@@ -158,7 +157,7 @@
 
             <TextView
                 android:id="@+id/tv_current_score"
-                android:layout_width="wrap_content"
+                android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:text="0"
                 android:textSize="60dip"
@@ -174,6 +173,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/lt_info"
         android:orientation="horizontal"
+        android:background="#CC000000"
     >
     </LinearLayout>
     <LinearLayout
