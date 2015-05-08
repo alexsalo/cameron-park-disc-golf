@@ -30,24 +30,24 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
-import com.alexsalo.cameronparkdiscgolf_free.R;
-
 public class game_screen extends ActionBarActivity {
     public static final String RESULT_FILENAME = "disc_golf_stats.csv";
     public static final String RESULT_DIR = "/cameron_disc_golf";
+
     public static int NOGAME = -99;
+    public static int N_HOLES = 14;
+    private static int N_FREE_SAVES = 10;
+
     public int ScreenWidth;
-    public static int N_holes = 14;
+
     LinearLayout lt_holes;
     LinearLayout lt_holes_scores;
+
     TextView[] tv_holes;
     TextView[] tv_holes_scores;
-    ImageView bg_image;
+
     TextView tv_cur_hole_score;
     TextView tv_score;
-    int cur_hole = 0;
-    int[] cur_hole_scores = new int[N_holes];
-    int cur_score = 0;
 
     TextView tv_cur_hole_best;
     TextView tv_cur_hole_average;
@@ -57,30 +57,40 @@ public class game_screen extends ActionBarActivity {
     TextView tv_cur_hole_course_average;
     TextView tv_cur_hole_course_recent_average;
 
-    ArrayList<ArrayList<Integer>> history_scores;
-
     TextView graph;
     static int img_holes[]={R.drawable.hole01,R.drawable.hole02,R.drawable.hole03,R.drawable.hole04
             ,R.drawable.hole05,R.drawable.hole06,R.drawable.hole07,R.drawable.hole08,R.drawable.hole09
             ,R.drawable.hole10,R.drawable.hole11,R.drawable.hole12,R.drawable.hole13,R.drawable.hole12};
+    ImageView bg_image;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_game_screen);
+    int cur_hole;
+    int[] cur_hole_scores = new int[N_HOLES];
 
+    ArrayList<ArrayList<Integer>> history_scores;
+
+    private static final Map<Integer, String> par_names = new HashMap<Integer, String>();
+    static
+    {
+        par_names.put(-2, "Eagle");
+        par_names.put(-1, "Birdie");
+        par_names.put(0, "Par");
+        par_names.put(1, "Boogie");
+    }
+
+    private int getScreenWidth(){
         Display display = getWindowManager().getDefaultDisplay();
         Point size = new Point();
         display.getSize(size);
-        ScreenWidth = size.x;
+        return size.x;
+    }
 
-        for (int i=0; i<cur_hole_scores.length; i++){
-            cur_hole_scores[i] = NOGAME;
-        }
-        cur_hole_scores[0] = 0;
-
+    private void findAllViews(){
         graph = (TextView) findViewById(R.id.graph);
         graph.setVisibility(View.INVISIBLE);
+
+        bg_image = (ImageView) findViewById(R.id.iv_cur_hole_image);
+        tv_cur_hole_score = (TextView) findViewById(R.id.tv_current_hole_score);
+        tv_score = (TextView) findViewById(R.id.tv_current_score);
 
         tv_cur_hole_best = (TextView) findViewById(R.id.tv_cur_hole_best);
         tv_cur_hole_average = (TextView) findViewById(R.id.tv_cur_hole_average);
@@ -92,61 +102,65 @@ public class game_screen extends ActionBarActivity {
 
         lt_holes = (LinearLayout) findViewById(R.id.lt_holes);
         lt_holes_scores = (LinearLayout) findViewById(R.id.lt_holes_scores);
-        tv_holes = new TextView[N_holes];
-        tv_holes_scores = new TextView[N_holes];
+        tv_holes = new TextView[N_HOLES];
+        tv_holes_scores = new TextView[N_HOLES];
+    }
 
-        View.OnTouchListener hole_scores_touch_listener = new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (history_scores != null) {
-                    if (graph.getVisibility() == View.INVISIBLE) {
-                        graph.setVisibility(View.VISIBLE);
-                        Map<Integer, Integer> stat = getStatsDistr(cur_hole);
-                        String graphText = "";
-                        ArrayList<Integer> keys = new ArrayList<Integer>(stat.keySet());
-                        Collections.sort(keys);
-                        for (int key : keys) {
-                            graphText += String.valueOf(key) + ": " + String.valueOf(stat.get(key)) + "\n";
-                        }
-                        graphText = graphText.substring(0, graphText.length()-1); //delete last \n
-                        graph.setText(graphText);
-                    } else
-                        graph.setVisibility(View.INVISIBLE);
-                }
-                return false;
+    private void initGame(){
+        for (int i = 0; i < N_HOLES; i++){
+            cur_hole_scores[i] = NOGAME;
+            tv_holes_scores[i].setText("");
+        }
+        readHistoryScores();
+        cur_hole = 0;
+        updateNewlySelectedScore();
+    }
+
+    View.OnTouchListener hole_scores_touch_listener = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            if (history_scores != null) {
+                if (graph.getVisibility() == View.INVISIBLE) {
+                    graph.setVisibility(View.VISIBLE);
+                    Map<Integer, Integer> stat = Stats.getStatsDistr(history_scores, cur_hole);
+                    String graphText = "";
+                    ArrayList<Integer> keys = new ArrayList<Integer>(stat.keySet());
+                    Collections.sort(keys);
+                    for (int key : keys) {
+                        graphText += String.valueOf(key) + ": " + String.valueOf(stat.get(key)) + "\n";
+                    }
+                    graphText = graphText.substring(0, graphText.length()-1); //delete last \n
+                    graph.setText(graphText);
+                } else
+                    graph.setVisibility(View.INVISIBLE);
             }
-        };
+            return false;
+        }
+    };
 
-        View.OnTouchListener holes_on_touch_listener = new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                //Reset current hole background
-                tv_holes[cur_hole].setBackgroundColor(Color.parseColor("#CC000000"));
-                updateCurrentHoleScores();
+    View.OnTouchListener holes_on_touch_listener = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            tv_holes[cur_hole].setBackgroundColor(Color.parseColor("#CC000000"));
+            cur_hole = Integer.parseInt(((TextView) v).getText().toString()) - 1;
+            updateNewlySelectedScore();
+            return false;
+        }
+    };
 
-                cur_hole = Integer.parseInt(((TextView) v).getText().toString()) - 1;
-
-                if (cur_hole_scores[cur_hole] == NOGAME) {
-                    cur_hole_scores[cur_hole] = 0;
-                }
-                updateScores();
-                return false;
-            }
-        };
-
+    private void generateScoresViews(){
         for (int i = 0; i < tv_holes.length; i++){
             tv_holes_scores[i] = new TextView(this);
             tv_holes_scores[i].setBackgroundColor(Color.parseColor("#CC000000"));
             tv_holes_scores[i].setGravity(17);
-            tv_holes_scores[i].setWidth(ScreenWidth / N_holes);
+            tv_holes_scores[i].setWidth(ScreenWidth / N_HOLES);
             tv_holes_scores[i].setTextColor(Color.WHITE);
-            tv_holes_scores[i].setVisibility(View.INVISIBLE);
             tv_holes_scores[i].setOnTouchListener(hole_scores_touch_listener);
 
             tv_holes[i] = new TextView(this);
             tv_holes[i].setPadding(5, 5, 0, 5);
             tv_holes[i].setBackgroundColor(Color.parseColor("#CC000000"));
-            tv_holes[i].setWidth(ScreenWidth / N_holes);
+            tv_holes[i].setWidth(ScreenWidth / N_HOLES);
             tv_holes[i].setGravity(17);
             tv_holes[i].setText(String.valueOf(i + 1));
             tv_holes[i].setTextColor(Color.WHITE);
@@ -155,75 +169,43 @@ public class game_screen extends ActionBarActivity {
             lt_holes.addView(tv_holes[i]);
             lt_holes_scores.addView(tv_holes_scores[i]);
         }
+    }
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_game_screen);
 
-        bg_image = (ImageView) findViewById(R.id.iv_cur_hole_image);
-        tv_cur_hole_score = (TextView) findViewById(R.id.tv_current_hole_score);
-        tv_score = (TextView) findViewById(R.id.tv_current_score);
+        ScreenWidth = getScreenWidth();
+        findAllViews();
+        generateScoresViews();
+        initGame();
 
         bg_image.setOnTouchListener(new OnSwipeTouchListener(getApplicationContext()) {
             @Override
             public void onSwipeLeft() {
-                if (cur_hole < N_holes - 1){
-                    String msg = "";
-                    switch (cur_hole_scores[cur_hole]){
-                        case -2:
-                            msg = "Eagle";
-                            break;
-                        case -1:
-                            msg = "Birdie";
-                            break;
-                        case 0:
-                            msg = "Par";
-                            break;
+                if (cur_hole < N_HOLES){
+                    if (cur_hole_scores[cur_hole] == NOGAME){
+                        cur_hole_scores[cur_hole] = 0;
                     }
-                    if (msg != "")
+
+                    String msg = par_names.get(cur_hole_scores[cur_hole]);
+                    if (msg != null)
                         Toast.makeText(game_screen.this, msg, Toast.LENGTH_SHORT).show();
 
-                    updateCurrentHoleScores();
+                    updateScores();
 
-                    //Reset current hole background
                     tv_holes[cur_hole].setBackgroundColor(Color.parseColor("#CC000000"));
                     cur_hole++;
-                    if (cur_hole_scores[cur_hole] == NOGAME) {
-                        cur_hole_scores[cur_hole] = 0;
+                    if (cur_hole == N_HOLES){
+                        saveResults(null);
+                    }else{
+                        updateNewlySelectedScore();
                     }
-                    updateScores();
-                }
-                // if last hole
-                if (cur_hole == N_holes -1){
-                    finishGame(null);
-                }
-            }
-
-            @Override
-            public void onSwipeRight() {
-                if (cur_hole > 0){
-                    updateCurrentHoleScores();
-
-                    //Reset current hole background
-                    tv_holes[cur_hole].setBackgroundColor(Color.parseColor("#CC000000"));
-                    cur_hole--;
-                    if (cur_hole_scores[cur_hole] == NOGAME) {
-                        cur_hole_scores[cur_hole] = 0;
-                    }
-                    updateScores();
                 }
             }
         });
-
-        readHistoryScores();
-        updateScores();
     }
-
-    void updateCurrentHoleScores(){
-        //update cur_hole_score text
-        tv_holes_scores[cur_hole].setText(String.valueOf(cur_hole_scores[cur_hole]));
-        tv_holes_scores[cur_hole].setVisibility(View.VISIBLE);
-
-        tv_score.setText(String.valueOf(cur_score));
-    }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -240,7 +222,7 @@ public class game_screen extends ActionBarActivity {
                 .setCancelable(false)
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        resetGame();
+                        initGame();
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -261,39 +243,80 @@ public class game_screen extends ActionBarActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            resetGame();
+            initGame();
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
     public void decrease_hole_score(View view){
+        if (cur_hole_scores[cur_hole] == NOGAME){
+            cur_hole_scores[cur_hole] = 0;
+        }
         if (cur_hole_scores[cur_hole] >= -1) {
             cur_hole_scores[cur_hole]--;
-            updateScores();
+            tv_cur_hole_score.setText(String.valueOf(cur_hole_scores[cur_hole]));
         }
     }
 
     public void increase_hole_score(View view){
+        if (cur_hole_scores[cur_hole] == NOGAME){
+            cur_hole_scores[cur_hole] = 0;
+        }
         if (cur_hole_scores[cur_hole] < 10) {
             cur_hole_scores[cur_hole]++;
-            updateScores();
+            tv_cur_hole_score.setText(String.valueOf(cur_hole_scores[cur_hole]));
         }
     }
 
-    private void resetGame(){
-        //Reset current hole background
-        tv_holes[cur_hole].setBackgroundColor(Color.parseColor("#CC000000"));
-
-        for (int i=0; i<cur_hole_scores.length; i++){
-            cur_hole_scores[i] = NOGAME;
-            tv_holes_scores[i].setVisibility(View.INVISIBLE);
+    int getTotalScore(){
+        int res = 0;
+        for (int i = 0; i < cur_hole_scores.length; i++){
+            if (cur_hole_scores[i] != NOGAME){
+                res += cur_hole_scores[i];
+            }
         }
-        cur_hole = 0;
-        cur_hole_scores[cur_hole] = 0;
-        readHistoryScores();
-        updateScores();
+        return res;
+    }
+
+    private void updateScores(){
+        //display played hole score
+        tv_holes_scores[cur_hole].setText(String.valueOf(cur_hole_scores[cur_hole]));
+        //update total score text
+        tv_score.setText(String.valueOf(getTotalScore()));
+        //reset cur hole score to 0
+        tv_cur_hole_score.setText("0");
+
+        if (history_scores != null) {
+            tv_cur_hole_best.setText(String.valueOf(Stats.getBestScore(history_scores, cur_hole)));
+            tv_cur_hole_average.setText(String.format("%.2f", Stats.getAvgScore(history_scores, cur_hole)));
+            tv_cur_hole_recent_average.setText(String.format("%.2f", Stats.getRecentAvgScore(history_scores, cur_hole)));
+
+            tv_cur_hole_course_best.setText(String.valueOf(Stats.getBest(history_scores, cur_hole)));
+            tv_cur_hole_course_average.setText(String.format("%.2f", Stats.getAvg(history_scores, cur_hole)));
+            tv_cur_hole_course_recent_average.setText(String.format("%.2f", Stats.getRecentAvg(history_scores, cur_hole)));
+        }
+    }
+
+    private void updateNewlySelectedScore(){
+        //Change bk color of selected hole
+        tv_holes[cur_hole].setBackgroundColor(Color.parseColor("#CC33b5e5"));
+        //Change hole pic
+        bg_image.setImageDrawable(getDrawable(img_holes[cur_hole]));
+        if (cur_hole_scores[cur_hole] != NOGAME){
+            tv_cur_hole_score.setText(String.valueOf(cur_hole_scores[cur_hole]));
+        }else{
+            tv_cur_hole_score.setText("0");
+        }
+    }
+
+    /* Checks if external storage is available for read and write */
+    public boolean isExternalStorageWritable(){
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state)) {
+            return true;
+        }
+        return false;
     }
 
     private void readHistoryScores(){
@@ -310,15 +333,17 @@ public class game_screen extends ActionBarActivity {
                 Scanner sc = new Scanner(file);
 
                 while (sc.hasNext()){
-                    String[] values = sc.nextLine().split(",");
-                    Integer[] int_values = new Integer[values.length];
-                    for (int i = 0; i < values.length; i++){
-                        int_values[i] = Integer.parseInt(values[i]);
+                    String line = sc.nextLine();
+                    if (line.length() > 3) { //not \n
+                        String[] values = line.split(",");
+                        Integer[] int_values = new Integer[values.length];
+                        for (int i = 0; i < values.length; i++) {
+                            int_values[i] = Integer.parseInt(values[i]);
+                        }
+                        history_scores.add(new ArrayList<Integer>(Arrays.asList(int_values)));
                     }
-                    history_scores.add(new ArrayList<Integer>(Arrays.asList(int_values)));
                 }
-
-                System.out.println(history_scores);
+                Toast.makeText(game_screen.this, "Your previous results are loaded", Toast.LENGTH_SHORT).show();
 
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
@@ -328,47 +353,30 @@ public class game_screen extends ActionBarActivity {
         }
     }
 
-    Map<Integer, Integer> getStatsDistr(int hole){
-        if (history_scores != null) {
-            Map<Integer, Integer> distribution = new HashMap<Integer, Integer>();
-            for (ArrayList<Integer> list : history_scores){
-                int result = list.get(hole);
-                int count = distribution.containsKey(result) ? distribution.get(result) : 0;
-                distribution.put(result, count + 1);
-            }
-            return distribution;
-        }else{
-            return null;
-        }
-    }
-
-
-    public void finishGame(View view){
+    public void saveResults(View view){
         if (isExternalStorageWritable()){
             File root = android.os.Environment.getExternalStorageDirectory();
-
             // See http://stackoverflow.com/questions/3551821/android-write-to-sd-card-folder
             File dir = new File (root.getAbsolutePath() + RESULT_DIR);
             dir.mkdirs();
             File file = new File(dir, RESULT_FILENAME);
 
-            if (history_scores.size() < 7) {
+            if (history_scores.size() < N_FREE_SAVES) {
                 try {
                     FileOutputStream f = new FileOutputStream(file, true);
                     PrintWriter pw = new PrintWriter(f);
-                    pw.println();
                     for (int i = 0; i < cur_hole_scores.length; i++) {
                         pw.print(cur_hole_scores[i]);
                         if (i != cur_hole_scores.length - 1) {
                             pw.print(",");
                         }
-
                     }
+                    pw.println();
                     pw.flush();
                     pw.close();
                     f.close();
                     Toast.makeText(game_screen.this, "Your result has been saved.", Toast.LENGTH_SHORT).show();
-                    resetGame();
+                    initGame();
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                     Log.i("i", "******* File not found. Did you add a WRITE_EXTERNAL_STORAGE permission to the   manifest?");
@@ -378,8 +386,9 @@ public class game_screen extends ActionBarActivity {
             }else{
                 AlertDialog alertDialog = new AlertDialog.Builder(game_screen.this).create();
                 alertDialog.setTitle("Get a full version");
-                alertDialog.setMessage("You are using a free version which can't save more than 5 games. Please " +
-                        "get the full version for the unlimited history storage");
+                alertDialog.setMessage("You are using a free version which can't save more than"
+                        + String.valueOf(N_FREE_SAVES) +
+                        "games. Please get the full version for the unlimited history storage");
                 alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
@@ -392,130 +401,5 @@ public class game_screen extends ActionBarActivity {
         }else{
             Toast.makeText(game_screen.this, "Can't save results - no external drive", Toast.LENGTH_SHORT).show();
         }
-    }
-
-    private void updateScores(){
-        tv_cur_hole_score.setText(String.valueOf(cur_hole_scores[cur_hole]));
-        cur_score = getCurScore();
-
-        if (history_scores != null) {
-            tv_cur_hole_best.setText(String.valueOf(getBestScore(history_scores, cur_hole)));
-            tv_cur_hole_average.setText(String.format("%.2f", getAvgScore(history_scores, cur_hole)));
-            tv_cur_hole_recent_average.setText(String.format("%.2f", getRecentAvgScore(history_scores, cur_hole)));
-
-            tv_cur_hole_course_best.setText(String.valueOf(getBest(cur_hole)));
-            tv_cur_hole_course_average.setText(String.format("%.2f", getAvg(cur_hole)));
-            tv_cur_hole_course_recent_average.setText(String.format("%.2f", getRecentAvg(cur_hole)));
-        }
-
-        //Change bk color of selected hole
-        tv_holes[cur_hole].setBackgroundColor(Color.parseColor("#CC33b5e5"));
-
-        //Change hole pic
-        bg_image.setImageDrawable(getDrawable(img_holes[cur_hole]));
-    }
-
-    ArrayList<Integer> getScoreArray(ArrayList<ArrayList<Integer>> x, int hole){
-        ArrayList<Integer> scores = new ArrayList<Integer>();
-        for (ArrayList<Integer> list : x){
-            int sum = 0;
-            boolean doCount = true;
-            for (int i = 0; i < hole; i++) {
-                if (list.get(hole) == NOGAME)
-                    doCount = false;
-
-                sum += list.get(i);
-            }
-            if (doCount)
-                scores.add(sum);
-        }
-        return scores;
-    }
-
-    int getBest(int hole){
-        int best = 99;
-        for (int sum : getScoreArray(history_scores, hole)){
-            if (sum < best)
-                best = sum;
-        }
-        return best == 99 ? 0 : best;
-    }
-
-    double getAvg(int hole){
-        int totalSum = 0;
-        ArrayList<Integer> scores = getScoreArray(history_scores, hole);
-        for (int sum : scores){
-            totalSum += sum;
-        }
-        return totalSum * 1.0 / scores.size();
-    }
-
-    double getRecentAvg(int hole){
-        int totalSum = 0;
-        ArrayList<Integer> scores = getScoreArray(history_scores, hole);
-        for (int i = 0; i < scores.size(); i++){
-            totalSum += scores.get(scores.size() - 1 - i);
-            if (i >= 2){
-                break;
-            }
-        }
-        return totalSum * 1.0 / scores.size();
-    }
-
-    int getBestScore(ArrayList<ArrayList<Integer>> x, int hole){
-        int best = 99;
-        for (ArrayList<Integer> list : x){
-            if (list.get(hole) != NOGAME && list.get(hole) < best){
-                best = list.get(hole);
-            }
-        }
-        return best == 99 ? 0 : best;
-    }
-
-    double getAvgScore(ArrayList<ArrayList<Integer>> x, int hole){
-        int avg = 0;
-        int size = 0;
-        for (ArrayList<Integer> list : x){
-            if (list.get(hole) != NOGAME) {
-                avg += list.get(hole);
-                size++;
-            }
-        }
-        return avg * 1.0 / size;
-    }
-
-    double getRecentAvgScore(ArrayList<ArrayList<Integer>> x, int hole){
-        int avg = 0;
-        int size = 0;
-        for (int i = 0; i < x.size(); i++){
-            if (x.get(i).get(hole) != NOGAME) {
-                avg += x.get(i).get(hole);
-                size++;
-            }
-            if (size >= 2){
-                break;
-            }
-        }
-        return avg * 1.0 / size;
-    }
-
-
-    /* Checks if external storage is available for read and write */
-    public boolean isExternalStorageWritable(){
-        String state = Environment.getExternalStorageState();
-        if (Environment.MEDIA_MOUNTED.equals(state)) {
-            return true;
-        }
-        return false;
-    }
-
-    int getCurScore(){
-        int res = 0;
-        for (int i = 0; i < cur_hole_scores.length; i++){
-            if (cur_hole_scores[i] != NOGAME){
-                res += cur_hole_scores[i];
-            }
-        }
-        return res;
     }
 }

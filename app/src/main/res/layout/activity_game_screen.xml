@@ -7,7 +7,6 @@
         android:id="@+id/iv_cur_hole_image"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:src="@drawable/hole01"
         android:scaleType="fitXY"/>
 
     <LinearLayout
@@ -199,7 +198,7 @@
         android:layout_height="50dip"
         android:layout_below="@+id/lt_holes_scores"
         android:layout_alignParentRight="true"
-        android:text="Finish Game"
+        android:text="Save Result"
         android:textColor="@android:color/white"
         android:background="#AADD0000"
         android:onClick="finishGame"/>
