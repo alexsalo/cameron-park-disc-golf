@@ -36,7 +36,7 @@ public class game_screen extends ActionBarActivity {
 
     public static int NOGAME = -99;
     public static int N_HOLES = 14;
-    private static int N_FREE_SAVES = 10;
+    private static int N_FREE_SAVES = 5;
 
     public int ScreenWidth;
 
