@@ -66,7 +66,7 @@ public class game_screen extends ActionBarActivity {
     int cur_hole;
     int[] cur_hole_scores = new int[N_HOLES];
 
-    ArrayList<ArrayList<Integer>> history_scores = new ArrayList<ArrayList<Integer>>();
+    ArrayList<ArrayList<Integer>> history_scores;
 
     private static final Map<Integer, String> par_names = new HashMap<Integer, String>();
     static
@@ -335,6 +335,7 @@ public class game_screen extends ActionBarActivity {
 
     private void readHistoryScores(){
         if (isExternalStorageWritable()){
+            history_scores = new ArrayList<ArrayList<Integer>>()
             File root = android.os.Environment.getExternalStorageDirectory();
 
             // See http://stackoverflow.com/questions/3551821/android-write-to-sd-card-folder
