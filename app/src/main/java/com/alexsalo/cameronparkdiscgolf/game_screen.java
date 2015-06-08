@@ -1,4 +1,4 @@
-package com.alexsalo.cameronparkdiscgolf_free;
+package com.alexsalo.cameronparkdiscgolf;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -36,7 +36,7 @@ public class game_screen extends ActionBarActivity {
 
     public static int NOGAME = -99;
     public static int N_HOLES = 14;
-    private static int N_FREE_SAVES = 10;
+    private static int N_FREE_SAVES = 10000;
 
     public int ScreenWidth;
 
@@ -60,7 +60,7 @@ public class game_screen extends ActionBarActivity {
     TextView graph;
     static int img_holes[]={R.drawable.hole01,R.drawable.hole02,R.drawable.hole03,R.drawable.hole04
             ,R.drawable.hole05,R.drawable.hole06,R.drawable.hole07,R.drawable.hole08,R.drawable.hole09
-            ,R.drawable.hole10,R.drawable.hole11,R.drawable.hole12,R.drawable.hole13,R.drawable.hole12};
+            ,R.drawable.hole10,R.drawable.hole11,R.drawable.hole12,R.drawable.hole13,R.drawable.hole14};
     ImageView bg_image;
 
     int cur_hole;
@@ -119,18 +119,10 @@ public class game_screen extends ActionBarActivity {
     View.OnTouchListener hole_scores_touch_listener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
-            if (history_scores != null) {
+            if (history_scores.size() > 0) {
                 if (graph.getVisibility() == View.INVISIBLE) {
                     graph.setVisibility(View.VISIBLE);
-                    Map<Integer, Integer> stat = Stats.getStatsDistr(history_scores, cur_hole);
-                    String graphText = "";
-                    ArrayList<Integer> keys = new ArrayList<Integer>(stat.keySet());
-                    Collections.sort(keys);
-                    for (int key : keys) {
-                        graphText += String.valueOf(key) + ": " + String.valueOf(stat.get(key)) + "\n";
-                    }
-                    graphText = graphText.substring(0, graphText.length()-1); //delete last \n
-                    graph.setText(graphText);
+                    showStatisticForHole((int)v.getTag());
                 } else
                     graph.setVisibility(View.INVISIBLE);
             }
@@ -151,6 +143,7 @@ public class game_screen extends ActionBarActivity {
     private void generateScoresViews(){
         for (int i = 0; i < tv_holes.length; i++){
             tv_holes_scores[i] = new TextView(this);
+            tv_holes_scores[i].setTag(i);
             tv_holes_scores[i].setBackgroundColor(Color.parseColor("#CC000000"));
             tv_holes_scores[i].setGravity(17);
             tv_holes_scores[i].setWidth(ScreenWidth / N_HOLES);
@@ -283,19 +276,13 @@ public class game_screen extends ActionBarActivity {
         //display played hole score
         tv_holes_scores[cur_hole].setText(String.valueOf(cur_hole_scores[cur_hole]));
         //update total score text
-        tv_score.setText(String.valueOf(getTotalScore()));
+        int totalScore = getTotalScore();
+        tv_score.setText(String.valueOf(totalScore));
+        if (totalScore > 9){
+            tv_score.setTextSize(50);
+        }
         //reset cur hole score to 0
         tv_cur_hole_score.setText("0");
-
-        if (history_scores != null) {
-            tv_cur_hole_best.setText(String.valueOf(Stats.getBestScore(history_scores, cur_hole)));
-            tv_cur_hole_average.setText(String.format("%.2f", Stats.getAvgScore(history_scores, cur_hole)));
-            tv_cur_hole_recent_average.setText(String.format("%.2f", Stats.getRecentAvgScore(history_scores, cur_hole)));
-
-            tv_cur_hole_course_best.setText(String.valueOf(Stats.getBest(history_scores, cur_hole)));
-            tv_cur_hole_course_average.setText(String.format("%.2f", Stats.getAvg(history_scores, cur_hole)));
-            tv_cur_hole_course_recent_average.setText(String.format("%.2f", Stats.getRecentAvg(history_scores, cur_hole)));
-        }
     }
 
     private void updateNewlySelectedScore(){
@@ -308,6 +295,38 @@ public class game_screen extends ActionBarActivity {
         }else{
             tv_cur_hole_score.setText("0");
         }
+
+        if (history_scores != null)
+            if (history_scores.size() > 0) {
+                tv_cur_hole_best.setText(String.valueOf(Stats.getBestScore(history_scores, cur_hole)));
+                tv_cur_hole_average.setText(String.format("%.2f", Stats.getAvgScore(history_scores, cur_hole)));
+                tv_cur_hole_recent_average.setText(String.format("%.2f", Stats.getRecentAvgScore(history_scores, cur_hole)));
+
+                tv_cur_hole_course_best.setText(String.valueOf(Stats.getBest(history_scores, cur_hole)));
+                tv_cur_hole_course_average.setText(String.format("%.2f", Stats.getAvg(history_scores, cur_hole)));
+                tv_cur_hole_course_recent_average.setText(String.format("%.2f", Stats.getRecentAvg(history_scores, cur_hole)));
+            }
+
+        if (graph.getVisibility() == View.VISIBLE){
+            showStatisticForHole(cur_hole);
+        }
+    }
+
+    private void showStatisticForHole(int hole){
+        Map<Integer, Integer> stat = Stats.getStatsDistr(history_scores, hole);
+        String graphText = "Statistics for hole " + String.valueOf(hole + 1) + ":\n";
+        ArrayList<Integer> keys = new ArrayList<Integer>(stat.keySet());
+        Collections.sort(keys);
+        for (int key : keys) {
+            String statStr = String.valueOf(key);
+            if (key > 0)
+                statStr = " +" + statStr + "  ";
+            if (par_names.get(key) != null)
+                statStr = par_names.get(key);
+            graphText +=  statStr + ": " + String.valueOf(stat.get(key)) + "\n";
+        }
+        graphText = graphText.substring(0, graphText.length()-1); //delete last \n
+        graph.setText(graphText);
     }
 
     /* Checks if external storage is available for read and write */
@@ -321,6 +340,7 @@ public class game_screen extends ActionBarActivity {
 
     private void readHistoryScores(){
         if (isExternalStorageWritable()){
+            history_scores = new ArrayList<ArrayList<Integer>>();
             File root = android.os.Environment.getExternalStorageDirectory();
 
             // See http://stackoverflow.com/questions/3551821/android-write-to-sd-card-folder
@@ -329,7 +349,6 @@ public class game_screen extends ActionBarActivity {
             File file = new File(dir, RESULT_FILENAME);
 
             try {
-                history_scores = new ArrayList<ArrayList<Integer>>();
                 Scanner sc = new Scanner(file);
 
                 while (sc.hasNext()){

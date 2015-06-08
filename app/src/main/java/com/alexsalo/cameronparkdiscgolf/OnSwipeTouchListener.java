@@ -1,4 +1,4 @@
-package com.alexsalo.cameronparkdiscgolf_free;
+package com.alexsalo.cameronparkdiscgolf;
 
 /**
  * Created by salo on 4/22/2015.

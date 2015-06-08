@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.alexsalo.cameronparkdiscgolf_free">>
+    package="com.alexsalo.cameronparkdiscgolf">>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <application
         android:allowBackup="true"
@@ -9,7 +9,7 @@
         android:theme="@style/AppTheme"
         >
         <activity
-            android:name="com.alexsalo.cameronparkdiscgolf_free.game_screen"
+            android:name="com.alexsalo.cameronparkdiscgolf.game_screen"
             android:label="@string/app_name"
             android:screenOrientation="portrait">
             <intent-filter>

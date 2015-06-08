@@ -1,4 +1,4 @@
-package com.alexsalo.cameronparkdiscgolf_free;
+package com.alexsalo.cameronparkdiscgolf;
 
 import java.util.ArrayList;
 import java.util.HashMap;
