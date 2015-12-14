@@ -2,7 +2,11 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+<<<<<<< HEAD
       <module fileurl="file://$PROJECT_DIR$/CameronPark_DiskGolf.iml" filepath="$PROJECT_DIR$/CameronPark_DiskGolf.iml" />
+=======
+      <module fileurl="file://$PROJECT_DIR$/CameronPark_DiskGolf_free.iml" filepath="$PROJECT_DIR$/CameronPark_DiskGolf_free.iml" />
+>>>>>>> 5eaa6a9b77ed8abd57d58aa9f31b4f4ecbe02754
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>

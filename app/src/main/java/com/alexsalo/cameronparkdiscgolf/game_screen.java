@@ -36,7 +36,11 @@ public class game_screen extends ActionBarActivity {
 
     public static int NOGAME = -99;
     public static int N_HOLES = 14;
+<<<<<<< HEAD:app/src/main/java/com/alexsalo/cameronparkdiscgolf/game_screen.java
     private static int N_FREE_SAVES = 10000;
+=======
+    private static int N_FREE_SAVES = 5;
+>>>>>>> 5eaa6a9b77ed8abd57d58aa9f31b4f4ecbe02754:app/src/main/java/com/alexsalo/cameronparkdiscgolf_free/game_screen.java
 
     public int ScreenWidth;
 
@@ -296,6 +300,7 @@ public class game_screen extends ActionBarActivity {
             tv_cur_hole_score.setText("0");
         }
 
+<<<<<<< HEAD:app/src/main/java/com/alexsalo/cameronparkdiscgolf/game_screen.java
         if (history_scores != null)
             if (history_scores.size() > 0) {
                 tv_cur_hole_best.setText(String.valueOf(Stats.getBestScore(history_scores, cur_hole)));
@@ -306,6 +311,17 @@ public class game_screen extends ActionBarActivity {
                 tv_cur_hole_course_average.setText(String.format("%.2f", Stats.getAvg(history_scores, cur_hole)));
                 tv_cur_hole_course_recent_average.setText(String.format("%.2f", Stats.getRecentAvg(history_scores, cur_hole)));
             }
+=======
+        if (history_scores.size() > 0) {
+            tv_cur_hole_best.setText(String.valueOf(Stats.getBestScore(history_scores, cur_hole)));
+            tv_cur_hole_average.setText(String.format("%.2f", Stats.getAvgScore(history_scores, cur_hole)));
+            tv_cur_hole_recent_average.setText(String.format("%.2f", Stats.getRecentAvgScore(history_scores, cur_hole)));
+
+            tv_cur_hole_course_best.setText(String.valueOf(Stats.getBest(history_scores, cur_hole)));
+            tv_cur_hole_course_average.setText(String.format("%.2f", Stats.getAvg(history_scores, cur_hole)));
+            tv_cur_hole_course_recent_average.setText(String.format("%.2f", Stats.getRecentAvg(history_scores, cur_hole)));
+        }
+>>>>>>> 5eaa6a9b77ed8abd57d58aa9f31b4f4ecbe02754:app/src/main/java/com/alexsalo/cameronparkdiscgolf_free/game_screen.java
 
         if (graph.getVisibility() == View.VISIBLE){
             showStatisticForHole(cur_hole);

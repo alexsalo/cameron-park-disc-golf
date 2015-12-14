@@ -13,7 +13,9 @@ public class Stats {
         for (ArrayList<Integer> list : x){
             int result = list.get(hole);
             int count = distribution.containsKey(result) ? distribution.get(result) : 0;
-            distribution.put(result, count + 1);
+            if (result != game_screen.NOGAME) {
+                distribution.put(result, count + 1);
+            }
         }
         return distribution;
     }
