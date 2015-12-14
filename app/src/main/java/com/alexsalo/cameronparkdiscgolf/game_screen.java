@@ -289,7 +289,7 @@ public class game_screen extends ActionBarActivity {
         //Change bk color of selected hole
         tv_holes[cur_hole].setBackgroundColor(Color.parseColor("#CC33b5e5"));
         //Change hole pic
-        bg_image.setImageDrawable(getDrawable(img_holes[cur_hole]));
+        bg_image.setImageDrawable(getApplicationContext().getResources().getDrawable(img_holes[cur_hole]));
         if (cur_hole_scores[cur_hole] != NOGAME){
             tv_cur_hole_score.setText(String.valueOf(cur_hole_scores[cur_hole]));
         }else{
